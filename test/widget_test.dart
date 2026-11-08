@@ -1,30 +1,44 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:live_exam/main.dart';
+import 'package:live_exam/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('converts Celsius and Fahrenheit', (tester) async {
+    await tester.pumpWidget(const TemperatureConverterApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.enterText(find.byKey(const ValueKey('temperatureInput')), '0');
+    await tester.tap(find.byKey(const ValueKey('calculateButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('32.00 °F'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('conversionType')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fahrenheit to Celsius (°F → °C)').last);
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('temperatureInput')),
+      '32',
+    );
+    await tester.tap(find.byKey(const ValueKey('calculateButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('0.00 °C'), findsOneWidget);
+  });
+
+  testWidgets('shows validation messages for empty and invalid values', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const TemperatureConverterApp());
+
+    await tester.tap(find.byKey(const ValueKey('calculateButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('Please enter a temperature.'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('temperatureInput')),
+      'not a number',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Please enter a valid number.'), findsOneWidget);
   });
 }
